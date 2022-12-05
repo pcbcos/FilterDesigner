@@ -1,0 +1,5 @@
+/cmake-build-debug-event-trace/
+/cmake-build-debug/
+/cmake-build-release/
+.git/
+.idea/
