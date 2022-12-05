@@ -1,0 +1,4 @@
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2020.3.2/bin/ninja/win/ninja.exe" -G Ninja -S P:\DSP_Alogrithm\EllipticFilter -B P:\DSP_Alogrithm\EllipticFilter\cmake-build-debug
+-- Configuring done
+-- Generating done
+-- Build files have been written to: P:/DSP_Alogrithm/EllipticFilter/cmake-build-debug
