@@ -69,15 +69,15 @@ auto main() -> int {
         A = std::move(A1);
     }
 
-    std::cout << "\n零点z" << '\n';
+    std::cout << "\n闆剁偣z" << '\n';
     for (auto &zi: z) {
         std::cout << zi << '\n';
     }
-    std::cout << "\n极点p" << '\n';
+    std::cout << "\n鏋佺偣p" << '\n';
     for (auto &pi: p) {
         std::cout << pi << '\n';
     }
-    std::cout << "\n直流增益H0" << '\n';
+    std::cout << "\n鐩存祦澧炵泭H0" << '\n';
     std::cout << H0 << '\n';
     std::cout << "H(s)" << '\n';
     for (int i = 0; i < B.size(); i++) {
