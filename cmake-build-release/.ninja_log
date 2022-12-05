@@ -1,9 +1,0 @@
-# ninja log v5
-1	265	6899448727300819	CMakeFiles/test2.dir/main3.c.obj	d66d5ac7803002d5
-5	8285	6918649195917669	CMakeFiles/EllipticFilter.dir/src/EllipticFunction.cpp.obj	2cd2cdf5d842dcbc
-265	389	6899448728383930	test2.exe	2a2707c2e88a5496
-3	3447	6899472409579238	CMakeFiles/test.dir/main2.cpp.obj	89f2e4938996ceb0
-12031	12333	6919345934020025	EllipticFilter.exe	4c325009b28b0750
-3447	3601	6899472410955562	test.exe	72014cc85fb731a1
-8	4413	6918720243311200	CMakeFiles/EllipticFilter.dir/main.cpp.obj	594bc78c55d72aec
-3	12031	6919345931034978	CMakeFiles/EllipticFilter.dir/src/FilterDesign.cpp.obj	a8cf80529d147c4d

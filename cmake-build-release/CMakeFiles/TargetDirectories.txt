@@ -1,3 +1,0 @@
-P:/DSP_Alogrithm/EllipticFilter/cmake-build-release/CMakeFiles/EllipticFilter.dir
-P:/DSP_Alogrithm/EllipticFilter/cmake-build-release/CMakeFiles/edit_cache.dir
-P:/DSP_Alogrithm/EllipticFilter/cmake-build-release/CMakeFiles/rebuild_cache.dir
