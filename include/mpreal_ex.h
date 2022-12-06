@@ -400,7 +400,6 @@ _NODISCARD std::complex<mpfr::mpreal> std::asin<mpfr::mpreal>(const std::complex
 
     return complex<_Ty>(imag(_Asinh), -real(_Asinh));
 }
-
 #endif
 
 #endif //ELLIPTICFILTER_MPREAL_EX_H

@@ -111,7 +111,7 @@ auto AF::detail::elliptic_lp_prototype(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::m
 
 
 auto AF::ellipitic_filter_order(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpfr::mpreal As,
-                                AF::filter_band_type type) -> std::tuple<uint32_t, mpreal> {
+                                filter_band_type type) -> std::tuple<uint32_t, mpreal> {
     using mpfr::mpreal;
     mpreal wn0;
     uint32_t N;
@@ -147,7 +147,7 @@ auto AF::ellipitic_filter_order(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal A
 
 auto
 AF::ellipitic_filter_order2(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
-                            mpfr::mpreal As, AF::filter_band_type type) -> std::tuple<uint32_t, mpreal, mpreal> {
+                            mpfr::mpreal As, filter_band_type type) -> std::tuple<uint32_t, mpreal, mpreal> {
     //TODO:添加policy,使这个调整策略可以选择
     if (type == filter_band_type::bandpass) {
         //按课本写的可能会有问题,到时候看看英文版
@@ -177,14 +177,14 @@ AF::ellipitic_filter_order2(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu
     }
 }
 
-auto AF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpfr::mpreal As,
-                          AF::filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+auto AF::ellipitic_filter(mpfr::mpreal Wp, mpfr::mpreal Ws, mpfr::mpreal Ap, mpfr::mpreal As,
+                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
     if (type == lowpass) {
-        return AF::detail::elliptic_lp_prototype(std::move(wp), std::move(ws), std::move(Ap), std::move(As));
+        return AF::detail::elliptic_lp_prototype(std::move(Wp), std::move(Ws), std::move(Ap), std::move(As));
     } else if (type == highpass) {
         //频率变换
-        mpreal wp_p = 1_mpr / wp;
-        mpreal ws_p = 1_mpr / ws;
+        mpreal wp_p = 1_mpr / Wp;
+        mpreal ws_p = 1_mpr / Ws;
         //算等效低通
         auto [z, p, H0, B, A] = AF::detail::elliptic_lp_prototype(wp_p, ws_p, Ap, As);
         //频率逆变换
@@ -206,16 +206,16 @@ auto AF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpf
     return {};
 }
 
-auto AF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
+auto AF::ellipitic_filter(mpfr::mpreal Wpu, mpfr::mpreal Wpl, mpfr::mpreal Wsu, mpfr::mpreal Wsl, mpfr::mpreal Ap,
                           mpfr::mpreal As,
-                          AF::filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
     if (type == bandpass) {
 
         //频率变换
-        mpreal BW = wpu - wpl;
-        mpreal w0 = sqrt(wpl * wpu);
-        mpreal wsl_p = wsl - w0 * w0 / wsl;
-        mpreal wsu_p = wsu - w0 * w0 / wsu;
+        mpreal BW = Wpu - Wpl;
+        mpreal w0 = sqrt(Wpl * Wpu);
+        mpreal wsl_p = Wsl - w0 * w0 / Wsl;
+        mpreal wsu_p = Wsu - w0 * w0 / Wsu;
         mpreal ws_p = min(abs(wsl_p), abs(wsu_p));
         mpreal wp_p = BW;
 
@@ -282,10 +282,10 @@ auto AF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
     } else if (type == bandstop) {
 
         //频率变换
-        mpfr::mpreal w0 = sqrt(wsl * wsu);//中心频率
-        mpreal BW = wsu - wsl;
-        mpreal wpl_p = 1_mpr / (wpl - w0 * w0 / wpl);
-        mpreal wpu_p = 1_mpr / (wpu - w0 * w0 / wpu);
+        mpfr::mpreal w0 = sqrt(Wsl * Wsu);//中心频率
+        mpreal BW = Wsu - Wsl;
+        mpreal wpl_p = 1_mpr / (Wpl - w0 * w0 / Wpl);
+        mpreal wpu_p = 1_mpr / (Wpu - w0 * w0 / Wpu);
         mpreal ws_p = 1_mpr / BW;
         mpreal wp_p = max(abs(wpl_p), abs(wpu_p));
 
@@ -348,3 +348,5 @@ auto AF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
     }
     return {};
 }
+
+

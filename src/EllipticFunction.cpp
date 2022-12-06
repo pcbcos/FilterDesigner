@@ -32,7 +32,7 @@ namespace Ellipitic {
         return std::make_pair(__EllipticK(__k), __EllipticK(__k_prime));
     }
 
-    auto cd(const mpcomplex &u, mpreal k)->mpcomplex {
+    auto cd(const mpcomplex &u, mpreal k) -> mpcomplex {
         /*calc w=cd(uK,k)  u is given
      * */
         std::vector<mpreal> kn;
@@ -57,7 +57,7 @@ namespace Ellipitic {
         return w;
     }
 
-    auto sn(const mpcomplex &u, mpreal k)->mpcomplex {
+    auto sn(const mpcomplex &u, mpreal k) -> mpcomplex {
         /*calc w=cd(uK,k)  u is given
      * */
         std::vector<mpreal> kn;
@@ -81,7 +81,7 @@ namespace Ellipitic {
         return w;
     }
 
-    auto acd(mpcomplex w, mpreal k) ->mpcomplex{
+    auto acd(mpcomplex w, mpreal k) -> mpcomplex {
         std::vector<mpreal> kn;
         kn.push_back(k);
         const mpreal kmin = std::numeric_limits<mpreal>::min();
@@ -117,7 +117,7 @@ namespace Ellipitic {
         return u;
     }
 
-    auto asn(mpcomplex w, mpreal k)->mpcomplex {
+    auto asn(mpcomplex w, mpreal k) -> mpcomplex {
         std::vector<mpreal> kn;
         kn.push_back(k);
         const mpreal kmin = std::numeric_limits<mpreal>::min();
@@ -175,6 +175,5 @@ namespace Ellipitic {
         }
         return sqrt(1 - kp * kp);
     }
-
 }
 
