@@ -108,7 +108,7 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
                           mpfr::mpreal As,
                           filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
 
-    mpreal c0, Wsl, Wsu, Ws, Wp;
+    mpreal c0, Wsl, Wsu, Ws, Wp, Wpl, Wpu;
     int q;
     if (type == bandpass) {
         //转换技术指标//TODO:还有一种技术指标的转换方式
@@ -125,15 +125,20 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
 //        mpreal Wp=std::max(abs(Wpl),abs(Wpu));
     } else if (type == bandstop) {
         //转换技术指标//TODO:还有一种技术指标的转换方式
-        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
-        Wsl = sin(wsl) / (c0 - cos(wsl));
-        Wsu = sin(wsu) / (c0 - cos(wsu));
-        Ws = std::min(abs(Wsl), abs(Wsu));
-        Wp = cot((wpu - wpl) / 2_mpr);
+//        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
+//        Wsl = sin(wsl) / (c0 - cos(wsl));
+//        Wsu = sin(wsu) / (c0 - cos(wsu));
+//        Ws = std::min(abs(Wsl), abs(Wsu));
+//        Wp = cot((wpu - wpl) / 2_mpr);
+        c0 = sin(wsl + wsu) / (sin(wsl) + sin(wsu));
+        Wpl = sin(wpl) / (c0 - cos(wpl));
+        Wpu = sin(wpu) / (c0 - cos(wpu));
+        Wp = std::max(abs(Wpl), abs(Wpu));
+        Ws = cot((wsu - wsl) / 2_mpr);
         q = -1;
     }
     //设计模拟低通滤波器
-    auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, std::move(Ap), std::move(As));
+    auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, Ap, std::move(As));
     //反转换
     std::vector<mpcomplex> z_hat;
     std::vector<mpcomplex> p_hat;
@@ -153,11 +158,12 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
     if (r == 1) {
         auto p_h0 = p_hat[0];
         mpreal G0 = (1_mpr - p_h0).real() / 2_mpr;
-        H0 *= G0;
         mpcomplex p01 = (c0 * (1_mpr + mpfr::mpreal(q) * p_h0) +
-                         sqrt(c0 * c0 * (1_mpr + mpreal(q) * p_h0) * (1_mpr + mpreal(q) * p_h0) - 4_mpr * q * p_h0));
+                         sqrt(c0 * c0 * (1_mpr + mpreal(q) * p_h0) * (1_mpr + mpreal(q) * p_h0) - 4_mpr * q * p_h0)) /
+                        2_mpr;
         mpcomplex p02 = (c0 * (1_mpr + mpfr::mpreal(q) * p_h0) -
-                         sqrt(c0 * c0 * (1_mpr + mpreal(q) * p_h0) * (1_mpr + mpreal(q) * p_h0) - 4_mpr * q * p_h0));
+                         sqrt(c0 * c0 * (1_mpr + mpreal(q) * p_h0) * (1_mpr + mpreal(q) * p_h0) - 4_mpr * q * p_h0)) /
+                        2_mpr;
         p.push_back(p01);
         p.push_back(p02);
         mpcomplex z01 = (q == 1) ? mpcomplex(1, 0) : exp(mpcomplex(0, acos(c0)));
@@ -167,9 +173,10 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
         if (q == 1) {
             B.push_back({G0, 0, -G0});
         } else {
-            B.push_back({G0, -2 * c0 * G0, 1});
+            B.push_back({G0, -2 * c0 * G0, G0});
         }
         A.push_back({1, -(p01 + p02).real(), (p01 * p02).real()});
+        H0 *= G0;
     } else {
         B.push_back({Gp, 0, 0});
         A.push_back({1, 0, 0});
@@ -197,7 +204,7 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
         mpreal Gi_square = Gi_abs * Gi_abs;
 
         B.push_back({Gi_abs, -2_mpr * Gi_abs * zi1.real(), Gi_abs * abs(zi1) * abs(zi1)});
-        A.push_back({Gi_abs, -2_mpr * Gi_abs * pi1.real(), Gi_abs * abs(pi1) * abs(pi1)});
+        A.push_back({1_mpr, -2_mpr * pi1.real(), abs(pi1) * abs(pi1)});
 
         //第二组
         mpcomplex pi2 = (c0 - pi1) / (1_mpr - c0 * pi1);
@@ -212,7 +219,7 @@ auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, 
         z.push_back(zi2s);
 
         B.push_back({Gi_abs, -2_mpr * Gi_abs * zi2.real(), Gi_abs * abs(zi2) * abs(zi2)});
-        A.push_back({Gi_abs, -2_mpr * Gi_abs * pi2.real(), Gi_abs * abs(pi2) * abs(pi2)});
+        A.push_back({1_mpr, -2_mpr * pi2.real(), abs(pi2) * abs(pi2)});
         H0 *= Gi_square;
     }
     return {z, p, H0, B, A};
