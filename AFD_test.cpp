@@ -22,23 +22,23 @@ auto main() -> int {
     mpreal ws, wsl, wsu;
 
     if ((filter_band_type(type) == lowpass) || (filter_band_type(type) == highpass)) {
-        std::cout << "wp=";
+        std::cout << "Wp=";
         std::cin >> wp;
 
-        std::cout << "ws=";
+        std::cout << "Ws=";
         std::cin >> ws;
 
     } else {
-        std::cout << "wpl=";
+        std::cout << "Wpl=";
         std::cin >> wpl;
 
-        std::cout << "wpu=";
+        std::cout << "Wpu=";
         std::cin >> wpu;
 
-        std::cout << "wsl=";
+        std::cout << "Wsl=";
         std::cin >> wsl;
 
-        std::cout << "wsu=";
+        std::cout << "Wsu=";
         std::cin >> wsu;
 
     }
