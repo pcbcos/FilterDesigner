@@ -26,10 +26,10 @@ auto DF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpf
             auto p_a0 = p0[0];
             auto p_0 = (1_mpr + p_a0) / (1_mpr - p_a0);
             mpreal G0 = (1_mpr - p_0).real() / 2_mpr;
-            H0 *= G0;
             p.push_back(p_0);
-            B.push_back({H0 * G0, H0 * G0, 0});
+            B.push_back({G0, G0, 0});
             A.push_back({1, -p_0.real(), 0});
+            H0 *= G0;
         } else {
             B.push_back({Gp, 0, 0});
             A.push_back({1, 0, 0});
