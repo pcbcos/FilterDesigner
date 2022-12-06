@@ -15,6 +15,10 @@ using mpcomplex = std::complex<mpreal>;
 
 class TransferFunction {
 public:
+    enum ftype{
+        AF,
+        DF
+    };
     TransferFunction() = default;
 
     TransferFunction(std::array<mpreal, 3> B, std::array<mpreal, 3> A) : B(std::move(B)), A(std::move(A)) {
@@ -29,17 +33,25 @@ public:
         return A;
     }
 
-    inline std::string toLaTex() {
+    inline std::string toLaTex(ftype type=AF) {
         std::string s;
         auto get_flag = [](const mpreal &x) {
             return x > 0 ? std::string("+") : std::string("-");
         };
 
-        s += "\\frac{" + B[0].toString(5) + get_flag(B[1]) + abs(B[1]).toString(5) + "s" +
-             get_flag(B[2]) +
-             abs(B[2]).toString(5) + "s^2}{";
-        s += A[0].toString(5) + get_flag(A[1]) + abs(A[1]).toString(5) + "s" + get_flag(A[2]) + abs(A[2]).toString(5) +
-             "s^2}";
+        if(type==AF){
+            s += "\\frac{" + B[0].toString(5) + get_flag(B[1]) + abs(B[1]).toString(5) + "s" +
+                 get_flag(B[2]) +
+                 abs(B[2]).toString(5) + "s^2}{";
+            s += A[0].toString(5) + get_flag(A[1]) + abs(A[1]).toString(5) + "s" + get_flag(A[2]) + abs(A[2]).toString(5) +
+                 "s^2}";
+        }else{
+            s += "\\frac{" + B[0].toString(5) + get_flag(B[1]) + abs(B[1]).toString(5) + "z^{-1}" +
+                 get_flag(B[2]) +
+                 abs(B[2]).toString(5) + "z^{-2}}{";
+            s += A[0].toString(5) + get_flag(A[1]) + abs(A[1]).toString(5) + "z^{-1}" + get_flag(A[2]) + abs(A[2]).toString(5) +
+                 "z^{-2}}";
+        }
 
         return s;
     }
