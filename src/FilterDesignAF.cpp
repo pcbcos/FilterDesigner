@@ -5,7 +5,7 @@
 #include "FilterDesign.h"
 
 auto AF::detail::elliptic_lp_prototype(uint32_t N, const mpfr::mpreal &Ap,
-                                       const mpfr::mpreal &As) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, ::AF::mpreal, std::vector<std::array<::AF::mpreal, 3>>, std::vector<std::array<::AF::mpreal, 3>>> {
+                                       const mpfr::mpreal &As) -> design_res {
     //N:阶数
     //Ap:通带最大衰减
     //As:阻带最小衰减
@@ -58,7 +58,7 @@ auto AF::detail::elliptic_lp_prototype(uint32_t N, const mpfr::mpreal &Ap,
 }
 
 auto AF::detail::elliptic_lp_prototype(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap,
-                                       mpfr::mpreal As) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpfr::mpreal, std::vector<std::array<mpfr::mpreal, 3>>, std::vector<std::array<mpfr::mpreal, 3>>> {
+                                       mpfr::mpreal As) -> design_res {
     //用四个指标确定模拟椭圆低通滤波器
     mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
     mpreal ep = sqrt(pow(10_mpr, Ap / 10_mpr) - 1);//通带波纹系数
@@ -178,7 +178,7 @@ AF::ellipitic_filter_order2(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu
 }
 
 auto AF::ellipitic_filter(mpfr::mpreal Wp, mpfr::mpreal Ws, mpfr::mpreal Ap, mpfr::mpreal As,
-                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+                          filter_band_type type) -> design_res {
     if (type == lowpass) {
         return AF::detail::elliptic_lp_prototype(std::move(Wp), std::move(Ws), std::move(Ap), std::move(As));
     } else if (type == highpass) {
@@ -208,7 +208,7 @@ auto AF::ellipitic_filter(mpfr::mpreal Wp, mpfr::mpreal Ws, mpfr::mpreal Ap, mpf
 
 auto AF::ellipitic_filter(mpfr::mpreal Wpu, mpfr::mpreal Wpl, mpfr::mpreal Wsu, mpfr::mpreal Wsl, mpfr::mpreal Ap,
                           mpfr::mpreal As,
-                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+                          filter_band_type type) -> design_res {
     if (type == bandpass) {
 
         //频率变换

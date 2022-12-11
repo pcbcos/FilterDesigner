@@ -18,15 +18,16 @@ enum filter_band_type {
     bandstop
 };
 
+using design_res=std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpfr::mpreal, std::vector<std::array<mpfr::mpreal, 3>>, std::vector<std::array<mpfr::mpreal, 3>>>;
 namespace AF {
     using namespace mpfr;
     namespace detail {
         auto elliptic_lp_prototype(uint32_t N, const mpreal &Ap,
-                                   const mpreal &As) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+                                   const mpreal &As) -> design_res ;
 
 
         auto elliptic_lp_prototype(mpreal wp, mpreal ws, mpreal Ap,
-                                   mpreal As) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+                                   mpreal As) -> design_res ;
     }
 
     auto ellipitic_filter_order(mpreal wp, mpreal ws, mpreal Ap, mpreal As,
@@ -38,11 +39,11 @@ namespace AF {
                             filter_band_type type = filter_band_type::bandpass) -> std::tuple<uint32_t, mpreal, mpreal>;
 
     auto ellipitic_filter(mpreal Wp, mpreal Ws, mpreal Ap, mpreal As,
-                          filter_band_type type = lowpass) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+                          filter_band_type type = lowpass) -> design_res ;
 
     auto ellipitic_filter(mpfr::mpreal Wpu, mpfr::mpreal Wpl, mpfr::mpreal Wsu, mpfr::mpreal Wsl, mpfr::mpreal Ap,
                           mpfr::mpreal As,
-                          filter_band_type type = filter_band_type::bandpass) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+                          filter_band_type type = filter_band_type::bandpass) -> design_res ;
 }
 
 namespace DF {
@@ -50,11 +51,11 @@ namespace DF {
     namespace detail{
 
     }
-    auto ellipitic_filter(mpreal wp,mpreal ws,mpreal Ap,mpreal As,filter_band_type type=lowpass)->std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+    auto ellipitic_filter(mpreal wp,mpreal ws,mpreal Ap,mpreal As,filter_band_type type=lowpass)->design_res;
 
     auto ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
                           mpfr::mpreal As,
-                          filter_band_type type = filter_band_type::bandpass) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>>;
+                          filter_band_type type = filter_band_type::bandpass) -> design_res;
 
 }
 

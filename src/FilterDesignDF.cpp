@@ -7,7 +7,7 @@
 #include "FilterDesign.h"
 
 auto DF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpfr::mpreal As,
-                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+                          filter_band_type type) -> design_res {
     if (type == lowpass) {
         //转换技术指标
         mpreal Wp = tan(wp / 2_mpr);
@@ -106,7 +106,7 @@ auto DF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpf
 
 auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
                           mpfr::mpreal As,
-                          filter_band_type type) -> std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpreal, std::vector<std::array<mpreal, 3>>, std::vector<std::array<mpreal, 3>>> {
+                          filter_band_type type) -> design_res {
 
     mpreal c0, Wsl, Wsu, Ws, Wp, Wpl, Wpu;
     int q;
