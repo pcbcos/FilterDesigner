@@ -59,6 +59,10 @@ public:
         return s;
     }
 
+    inline std::string toMMA(){
+        return "F["+B[0].toString(8)+','+B[1].toString(8)+','+B[2].toString(8)+','+A[0].toString(8)+','+A[1].toString(8)+','+A[2].toString(8)+']';
+    }
+
 private:
     std::array<mpreal, 3> B;
     std::array<mpreal, 3> A;

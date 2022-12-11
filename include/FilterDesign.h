@@ -48,8 +48,16 @@ namespace AF {
                                const mpreal &Ap,
                                const mpreal &As,
                                filter_band_type type = filter_band_type::bandpass) -> std::tuple<uint32_t, mpreal, mpreal>;
+
         //从零极点设计出低通滤波器
-        auto zp_trans(zeros &zs, poles &ps, const mpreal& Gp) -> design_res;
+        auto zp_trans(zeros &zs, poles &ps, const mpreal &Gp) -> design_res;
+
+        //低通转带通
+        auto lp2bp(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+                   const mpreal& w0,const mpreal& Gp=1_mpr)->design_res;
+        //低通转带阻
+        auto lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+                   const mpreal& w0,const mpreal& Gp=1_mpr)->design_res ;
     }
 
 

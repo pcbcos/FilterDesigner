@@ -3,7 +3,10 @@
 //
 
 #include "FilterDesign.h"
+
 using mpfr::mpreal;
+static mpreal PI = mpfr::const_pi();
+
 auto AF::detail::elliptic_lp_prototype(uint32_t N, const mpfr::mpreal &Ap,
                                        const mpfr::mpreal &As) -> design_res {
     //N:阶数
@@ -89,7 +92,7 @@ auto AF::detail::elliptic_lp_prototype(const mpfr::mpreal &wp, const mpfr::mprea
         z.push_back(conj(zi));
     }
 
-    return detail::zp_trans(z,p,Gp);
+    return detail::zp_trans(z, p, Gp);
 }
 
 
@@ -141,7 +144,7 @@ AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const m
         mpreal wsl_p = wsl - w0 * w0 / wsl;
         mpreal wsu_p = wsu - w0 * w0 / wsu;
         mpreal ws_p = min(abs(wsl_p), abs(wsu_p));
-        const mpreal& wp_p = BW;
+        const mpreal &wp_p = BW;
         auto [N, wp0] = ellipitic_filter_order(wp_p, ws_p, Ap, As, lowpass);
         mpreal wpl0 = (sqrt(wp0 * wp0 + 4 * w0 * w0) - wp0) / 2_mpr;
         mpreal wpu0 = (sqrt(wp0 * wp0 + 4 * w0 * w0) + wp0) / 2_mpr;
@@ -162,28 +165,167 @@ AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const m
     }
 }
 
-auto AF::detail::zp_trans(zeros &zs, poles &ps, const mpreal& Gp) -> design_res {
-    auto N=ps.size();
-    auto L=N/2;
-    auto r=N%2;
+auto AF::detail::zp_trans(zeros &zs, poles &ps, const mpreal &Gp) -> design_res {
+    auto N = ps.size();
+    auto L = N / 2;
+    auto r = N % 2;
     std::vector<std::array<mpreal, 3>> B;//分子
     std::vector<std::array<mpreal, 3>> A;//分母
-    if(r==0){
-        B.push_back({Gp,0,0});
-        A.push_back({1,0,0});
-    }else{
-        auto p0=ps[0];
+    if (r == 0) {
+        B.push_back({Gp, 0, 0});
+        A.push_back({1, 0, 0});
+    } else {
+        auto p0 = ps[0];
         B.push_back({1, 0, 0});
         A.push_back({1, -(1_mpr / p0).real(), 0});
     }
-    for(uint32_t i=r;i<=2*L+r;i+=2){
-        auto zi=zs[i-r];
-        auto pi=ps[i];
-        B.push_back({1, -2 * (1_mpr / zi).real(), 1_mpr / abs(zi) / abs(zi)});
+    for (uint32_t i = r; i < 2 * L + r; i += 2) {
+        auto zi = zs[i - r];
+        auto pi = ps[i];
+        if(mpfr::isinf(zi.real())){
+            B.push_back({1,0, 0});
+        }else{
+            B.push_back({1, -2 * (1_mpr / zi).real(), 1_mpr / abs(zi) / abs(zi)});
+        }
         A.push_back({1, -2 * (1_mpr / pi).real(), 1_mpr / abs(pi) / abs(pi)});
     }
     auto H0 = r ? 1_mpr : Gp;
     return std::make_tuple(zs, ps, H0, B, A);
+}
+
+auto AF::detail::lp2bp(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+                       const mpreal &w0, const mpreal &Gp) -> design_res {
+    std::vector<mpcomplex> z;
+    std::vector<mpcomplex> p;
+    std::vector<std::array<mpreal, 3>> B1;//分子
+    std::vector<std::array<mpreal, 3>> A1;//分母
+    uint32_t r = ps.size() % 2;
+    uint32_t L = ps.size() / 2;
+    mpreal H0;
+    if (r == 1) {
+        auto p_first = ps[0];
+        A1.push_back({1, 1_mpr / (A[0][1] * w0 * w0), 1_mpr / (w0 * w0)});
+        B1.push_back({0, 1_mpr / (A[0][1] * w0 * w0), 0});
+        p.push_back((p_first + sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
+        p.push_back((p_first - sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
+        H0 = 1;
+    } else {
+        B1.push_back({Gp, 0, 0});
+        A1.push_back({1, 0, 0});
+        H0 = Gp;
+    }
+    for (uint32_t i = r; i < 2 * L + r; i += 2) {
+        auto z0i = zs[i - r];
+        //auto z0i_conj = conj(z0i);
+        auto p0i = ps[i];
+        //auto p0i_conj = conj(p0i);
+
+        //第一组
+        mpcomplex zi1;
+        if (mpfr::isinf(z0i.real())) {
+            zi1 = z0i;
+        } else {
+            zi1 = (z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+        }
+        z.push_back(zi1);
+        z.push_back(conj(zi1));
+
+        auto pi1 = (p0i + sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
+        p.push_back(pi1);
+        p.push_back(conj(pi1));
+        auto B2 = B[i / 2 + 1][2];
+        auto A2 = A[(i - r) / 2 + 1][2];
+
+        B1.push_back({B2, -2 * B2 * (1_mpr / zi1).real(), B2 / abs(zi1) / abs(zi1)});
+        A1.push_back({A2, -2 * A2 * (1_mpr / pi1).real(), A2 / abs(pi1) / abs(pi1)});
+        H0 *= (B2 / A2);
+
+        //第二组
+        mpcomplex zi2;
+        if (mpfr::isinf(z0i.real())) {
+            zi2 = 0_mpr;
+        } else {
+            zi2 = (z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+        }
+
+        z.push_back(zi2);
+        z.push_back(conj(zi2));
+
+        auto pi2 = (p0i - sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
+        p.push_back(pi2);
+        p.push_back(conj(pi2));
+
+        B1.push_back({1_mpr, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        A1.push_back({1_mpr, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
+    }
+    return {z, p, H0, B1, A1};
+}
+
+auto AF::detail::lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+                       const mpreal &w0, const mpreal &Gp) -> design_res {
+    std::vector<mpcomplex> z;
+    std::vector<mpcomplex> p;
+    std::vector<std::array<mpreal, 3>> B1;//分子
+    std::vector<std::array<mpreal, 3>> A1;//分母
+    uint32_t r = ps.size() % 2;
+    uint32_t L = ps.size() / 2;
+    mpreal H0;
+    if (r == 1) {
+        auto p_first = ps[0];
+        p_first = 1_mpr / p_first;
+        A1.push_back({1, 1_mpr / (A[0][1] * w0 * w0), 1_mpr / (w0 * w0)});
+        B1.push_back({0, 1_mpr / (A[0][1] * w0 * w0), 0});
+        p.push_back((p_first + sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
+        p.push_back((p_first - sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
+        H0 = 1;
+    } else {
+        B1.push_back({Gp, 0, 0});
+        A1.push_back({1, 0, 0});
+        H0 = Gp;
+    }
+    for (uint32_t i = r; i < 2 * L + r; i += 2) {
+        auto z0i = zs[i - r];
+        z0i = 1_mpr / z0i;
+        //auto z0i_conj = conj(z0i);
+        auto p0i = ps[i];
+        p0i = 1_mpr / p0i;
+        //auto p0i_conj = conj(p0i);
+
+        //第一组
+        mpcomplex zi1;
+        if(isinf(z0i.real())){
+            zi1=z0i;
+        }else{
+            zi1=(z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+        }
+        z.push_back(zi1);
+        z.push_back(conj(zi1));
+
+        auto pi1 = (p0i + sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
+        p.push_back(pi1);
+        p.push_back(conj(pi1));
+
+        B1.push_back({1_mpr, -2 * (1_mpr / zi1).real(), 1_mpr / abs(zi1) / abs(zi1)});
+        A1.push_back({1_mpr, -2 * (1_mpr / pi1).real(), 1_mpr / abs(pi1) / abs(pi1)});
+
+        //第二组
+        mpcomplex zi2;
+        if(isinf(z0i.real())){
+            zi2=0_mpr;
+        }else{
+            zi2=(z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+        }
+        z.push_back(zi2);
+        z.push_back(conj(zi2));
+
+        auto pi2 = (p0i - sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
+        p.push_back(pi2);
+        p.push_back(conj(pi2));
+
+        B1.push_back({1, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        A1.push_back({1, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
+    }
+    return {z, p, H0, B1, A1};
 }
 
 auto AF::ellipitic_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
@@ -226,66 +368,15 @@ auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Ws
         mpreal wsl_p = Wsl - w0 * w0 / Wsl;
         mpreal wsu_p = Wsu - w0 * w0 / Wsu;
         mpreal ws_p = min(abs(wsl_p), abs(wsu_p));
-        const mpreal& wp_p = BW;
+        const mpreal &wp_p = BW;
 
         //算等效低通
         auto [z0, p0, H0, B0, A0] = AF::detail::elliptic_lp_prototype(wp_p, ws_p, Ap, As);
 
         //频率逆变换
         //从B和A入手有一点点难度,考虑从零极点的变换入手
-        std::vector<mpcomplex> z;
-        std::vector<mpcomplex> p;
-        std::vector<std::array<mpreal, 3>> B;//分子
-        std::vector<std::array<mpreal, 3>> A;//分母
-        uint32_t r = p0.size() % 2;
-        uint32_t L = p0.size() / 2;
         mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
-        if (r == 1) {
-            auto p_first = p0[0];
-            A.push_back({1, 1_mpr / (A0[0][1] * w0 * w0), 1_mpr / (w0 * w0)});
-            B.push_back({0, 1_mpr / (A0[0][1] * w0 * w0), 0});
-            p.push_back((p_first + sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
-            p.push_back((p_first - sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
-        } else {
-            B.push_back({Gp, 0, 0});
-            A.push_back({1, 0, 0});
-        }
-        for (uint32_t i = r; i < 2 * L + r; i += 2) {
-            auto z0i = z0[i - r];
-            //auto z0i_conj = conj(z0i);
-            auto p0i = p0[i];
-            //auto p0i_conj = conj(p0i);
-
-            //第一组
-            auto zi1 = (z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-            z.push_back(zi1);
-            z.push_back(conj(zi1));
-
-            auto pi1 = (p0i + sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
-            p.push_back(pi1);
-            p.push_back(conj(pi1));
-            auto B2 = B0[i / 2 + 1][2];
-            auto A2 = A0[(i - r) / 2 + 1][2];
-
-            B.push_back({B2, -2 * B2 * (1_mpr / zi1).real(), B2 / abs(zi1) / abs(zi1)});
-            A.push_back({A2, -2 * A2 * (1_mpr / pi1).real(), A2 / abs(pi1) / abs(pi1)});
-
-            //第二组
-            auto zi2 = (z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-            z.push_back(zi2);
-            z.push_back(conj(zi2));
-
-            auto pi2 = (p0i - sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
-            p.push_back(pi2);
-            p.push_back(conj(pi2));
-
-            //B2 = 1_mpr / abs(zi2) / abs(zi2);
-            //A2 = 1_mpr / abs(pi2) / abs(pi2);
-
-            B.push_back({1_mpr, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
-            A.push_back({1_mpr, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
-        }
-        return {z, p, H0, B, A};
+        return detail::lp2bp(z0, p0, B0, A0, w0, Gp);
 
 
     } else if (type == bandstop) {
@@ -302,60 +393,114 @@ auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Ws
         auto [z0, p0, H0, B0, A0] = AF::detail::elliptic_lp_prototype(wp_p, ws_p, Ap, As);
 
         //频率逆变换
-        std::vector<mpcomplex> z;
-        std::vector<mpcomplex> p;
-        std::vector<std::array<mpreal, 3>> B;//分子
-        std::vector<std::array<mpreal, 3>> A;//分母
-        uint32_t r = p0.size() % 2;
-        uint32_t L = p0.size() / 2;
         mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
-        if (r == 1) {
-            auto p_first = p0[0];
-            p_first = 1_mpr / p_first;
-            A.push_back({1, 1_mpr / (A0[0][1] * w0 * w0), 1_mpr / (w0 * w0)});
-            B.push_back({0, 1_mpr / (A0[0][1] * w0 * w0), 0});
-            p.push_back((p_first + sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
-            p.push_back((p_first - sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
-        } else {
-            B.push_back({Gp, 0, 0});
-            A.push_back({1, 0, 0});
-        }
-        for (uint32_t i = r; i < 2 * L + r; i += 2) {
-            auto z0i = z0[i - r];
-            z0i = 1_mpr / z0i;
-            //auto z0i_conj = conj(z0i);
-            auto p0i = p0[i];
-            p0i = 1_mpr / p0i;
-            //auto p0i_conj = conj(p0i);
-
-            //第一组
-            auto zi1 = (z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-            z.push_back(zi1);
-            z.push_back(conj(zi1));
-
-            auto pi1 = (p0i + sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
-            p.push_back(pi1);
-            p.push_back(conj(pi1));
-
-            B.push_back({1_mpr, -2 * (1_mpr / zi1).real(), 1_mpr / abs(zi1) / abs(zi1)});
-            A.push_back({1_mpr, -2 * (1_mpr / pi1).real(), 1_mpr / abs(pi1) / abs(pi1)});
-
-            //第二组
-            auto zi2 = (z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-            z.push_back(zi2);
-            z.push_back(conj(zi2));
-
-            auto pi2 = (p0i - sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
-            p.push_back(pi2);
-            p.push_back(conj(pi2));
-
-            B.push_back({1, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
-            A.push_back({1, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
-        }
-        return {z, p, H0, B, A};
-
+        return detail::lp2bs(z0, p0, B0, A0, w0, Gp);
     }
     return {};
+}
+
+auto AF::butterworth_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                            filter_band_type type) -> design_res {
+    mpreal Wp1, Ws1;
+    //频率变换
+    if (type == lowpass) {
+        Wp1 = Wp;
+        Ws1 = Ws;
+    } else if (type == highpass) {
+        Wp1 = 1_mpr / Wp;
+        Ws1 = 1_mpr / Ws;
+    }
+    //确定阶数
+    mpreal ep = sqrt(pow(10_mpr, Ap / 10_mpr) - 1_mpr);
+    mpreal es = sqrt(pow(10_mpr, As / 10_mpr) - 1_mpr);
+    mpreal k = Wp1 / Ws1;
+    mpreal k1 = ep / es;
+    mpreal N_exact = log(k1) / log(k);
+    mpreal Gp = 1_mpr;
+    uint32_t N = ceil(N_exact).toULLong();
+    uint32_t L = N / 2;
+    uint32_t r = N % 2;
+
+    zeros za;
+    poles pa;
+    if (r == 1) {
+        pa.push_back(-Wp * pow(ep, -1_mpr / N));
+    }
+
+    for (uint32_t i = 1; i <= L; i++) {
+        mpreal u = (2 * i - 1_mpr) / N;
+        pa.push_back(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N));
+        pa.push_back(conj(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N)));
+        za.push_back(mpcomplex(mpfr::const_infinity(),0));
+        za.push_back(mpcomplex(mpfr::const_infinity(),0));
+    }
+    auto [z, p, H0, B, A] = detail::zp_trans(za, pa, Gp);
+    if (type == highpass) {
+        for (auto &li: B) {
+            std::reverse(li.begin(), li.end());
+        }
+        for (auto &li: A) {
+            std::reverse(li.begin(), li.end());
+        }
+        for (auto &zi: z) {
+            zi = 1_mpr / zi;
+        }
+        for (auto &pi: p) {
+            pi = 1_mpr / pi;
+        }
+    }
+    return {z, p, H0, B, A};
+}
+
+auto
+AF::butterworth_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                       const mpreal &As, filter_band_type type) -> design_res {
+    mpreal ws_p, wp_p, w0;
+    if (type == bandpass) {
+        //频率变换
+        w0 = sqrt(Wpl * Wpu);
+        mpreal BW = Wpu - Wpl;
+        mpreal wsl_p = Wsl - w0 * w0 / Wsl;
+        mpreal wsu_p = Wsu - w0 * w0 / Wsu;
+        ws_p = min(abs(wsl_p), abs(wsu_p));
+        wp_p = BW;
+    } else if (type == bandstop) {
+        //频率变换
+        w0 = sqrt(Wsl * Wsu);//中心频率
+        mpreal BW = Wsu - Wsl;
+        mpreal wpl_p = 1_mpr / (Wpl - w0 * w0 / Wpl);
+        mpreal wpu_p = 1_mpr / (Wpu - w0 * w0 / Wpu);
+        ws_p = 1_mpr / BW;
+        wp_p = max(abs(wpl_p), abs(wpu_p));
+    }
+    auto [z0, p0, H0, B0, A0] = AF::butterworth_filter(wp_p, ws_p, Ap, As);
+    //频率逆变换
+    if (type == bandpass) {
+        return detail::lp2bp(z0, p0, B0, A0, w0);
+    } else {
+        return detail::lp2bs(z0, p0, B0, A0, w0);
+    }
+
+}
+
+auto AF::chebyshev1_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto AF::chebyshev1_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                           const mpreal &As, filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto AF::chebyshev2_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto AF::chebyshev2_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                           const mpreal &As, filter_band_type type) -> design_res {
+    return design_res();
 }
 
 
