@@ -14,7 +14,7 @@ auto DF::ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, 
         mpreal Ws = tan(ws / 2_mpr);
         mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
         //设计模拟低通滤波器
-        auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, std::move(Ap), std::move(As), lowpass);
+        auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, Ap, As, lowpass);
         //反转换
         std::vector<mpcomplex> z;
         std::vector<mpcomplex> p;
@@ -60,7 +60,7 @@ auto DF::ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, 
         mpreal Ws = cot(ws / 2_mpr);
         mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
         //设计模拟低通滤波器
-        auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, std::move(Ap), std::move(As), lowpass);
+        auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, Ap, As, lowpass);
         //反转换
         std::vector<mpcomplex> z;
         std::vector<mpcomplex> p;
@@ -138,7 +138,7 @@ auto DF::ellipitic_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &ws
         q = -1;
     }
     //设计模拟低通滤波器
-    auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, Ap, std::move(As));
+    auto [z0, p0, H0, B0, A0] = AF::ellipitic_filter(Wp, Ws, Ap, As);
     //反转换
     std::vector<mpcomplex> z_hat;
     std::vector<mpcomplex> p_hat;

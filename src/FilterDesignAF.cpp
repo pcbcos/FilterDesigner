@@ -158,7 +158,7 @@ AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const m
         mpreal wsl_p = wsl - w0 * w0 / wsl;
         mpreal wsu_p = wsu - w0 * w0 / wsu;
         mpreal ws_p = min(abs(wsl_p), abs(wsu_p));
-        mpreal wp_p = BW;
+        const mpreal& wp_p = BW;
         auto [N, wp0] = ellipitic_filter_order(wp_p, ws_p, Ap, As, lowpass);
         mpreal wpl0 = (sqrt(wp0 * wp0 + 4 * w0 * w0) - wp0) / 2_mpr;
         mpreal wpu0 = (sqrt(wp0 * wp0 + 4 * w0 * w0) + wp0) / 2_mpr;
@@ -182,7 +182,7 @@ AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const m
 auto AF::ellipitic_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
                           filter_band_type type) -> design_res {
     if (type == lowpass) {
-        return AF::detail::elliptic_lp_prototype(std::move(Wp), std::move(Ws), std::move(Ap), std::move(As));
+        return AF::detail::elliptic_lp_prototype(Wp, Ws, Ap, As);
     } else if (type == highpass) {
         //频率变换
         mpreal wp_p = 1_mpr / Wp;
@@ -219,7 +219,7 @@ auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Ws
         mpreal wsl_p = Wsl - w0 * w0 / Wsl;
         mpreal wsu_p = Wsu - w0 * w0 / Wsu;
         mpreal ws_p = min(abs(wsl_p), abs(wsu_p));
-        mpreal wp_p = BW;
+        const mpreal& wp_p = BW;
 
         //算等效低通
         auto [z0, p0, H0, B0, A0] = AF::detail::elliptic_lp_prototype(wp_p, ws_p, Ap, As);
