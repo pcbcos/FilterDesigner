@@ -18,10 +18,18 @@ enum filter_band_type {
     bandstop
 };
 
+enum filter_type {
+    butterworth,
+    chebyshev1,
+    chebyshev2,
+    elliptic,
+    bessel
+};
+
 using design_res = std::tuple<std::vector<mpcomplex>, std::vector<mpcomplex>, mpfr::mpreal, std::vector<std::array<mpfr::mpreal, 3>>, std::vector<std::array<mpfr::mpreal, 3>>>;
 using zeros = std::vector<mpcomplex>;
 using poles = std::vector<mpcomplex>;
-using zero_and_pole = std::tuple<zeros, poles>;
+//using zero_and_pole = std::tuple<zeros, poles>;
 
 namespace AF {
     using namespace mpfr;
@@ -36,9 +44,12 @@ namespace AF {
                                     filter_band_type type = lowpass) -> std::tuple<uint32_t, mpreal>;
 
         auto
-        ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
+        ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl,
+                               const mpreal &Ap,
                                const mpreal &As,
                                filter_band_type type = filter_band_type::bandpass) -> std::tuple<uint32_t, mpreal, mpreal>;
+        //从零极点设计出低通滤波器
+        auto zp_trans(zeros &zs, poles &ps, const mpreal& Gp) -> design_res;
     }
 
 
@@ -48,6 +59,29 @@ namespace AF {
     auto ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
                           const mpreal &As,
                           filter_band_type type = filter_band_type::bandpass) -> design_res;
+
+    auto butterworth_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                            filter_band_type type = lowpass) -> design_res;
+
+    auto
+    butterworth_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                       const mpreal &As,
+                       filter_band_type type = filter_band_type::bandpass) -> design_res;
+
+    auto chebyshev1_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type = lowpass) -> design_res;
+
+    auto chebyshev1_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                           const mpreal &As,
+                           filter_band_type type = filter_band_type::bandpass) -> design_res;
+
+    auto chebyshev2_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type = lowpass) -> design_res;
+
+    auto chebyshev2_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                           const mpreal &As,
+                           filter_band_type type = filter_band_type::bandpass) -> design_res;
+
 }
 
 namespace DF {
@@ -56,7 +90,8 @@ namespace DF {
 
     }
 
-    auto ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As, filter_band_type type = lowpass) -> design_res;
+    auto ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
+                          filter_band_type type = lowpass) -> design_res;
 
     auto ellipitic_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
                           const mpreal &As,

@@ -69,44 +69,27 @@ auto AF::detail::elliptic_lp_prototype(const mpfr::mpreal &wp, const mpfr::mprea
     mpreal k = Ellipitic::deg(N, k1);
     uint32_t L = N / 2;
     uint32_t r = N % 2;
-
-    std::vector<std::array<mpreal, 3>> B;//分子
-    std::vector<std::array<mpreal, 3>> A;//分母
     auto v0 = -mpcomplex(0, 1) * Ellipitic::asn(mpcomplex(0, 1) / ep, k1) / mpreal(N);
-
     std::vector<mpcomplex> z;
     std::vector<mpcomplex> p;
-    if (r == 0) {
-        B.push_back({Gp, 0, 0});
-        A.push_back({1, 0, 0});
-    } else {
+    if (r == 1) {
         auto p0 = wp0 * mpcomplex(0, 1) * Ellipitic::sn(mpcomplex(0, 1) * v0, k);
         p.push_back(p0);
-        B.push_back({1, 0, 0});
-        A.push_back({1, -(1_mpr / p0).real(), 0});
     }
-
     for (uint32_t i = 1; i <= L; i++) {
         auto ui = (2_mpr * i - 1_mpr) / N;
         auto zeta_i = Ellipitic::cd(ui, k);
         auto zi = wp0 * mpcomplex(0, 1) / (k * zeta_i);
         auto pi = wp0 * mpcomplex(0, 1) * Ellipitic::cd(ui - mpcomplex(0, 1) * v0, k);
 
-        std::cout << k << '\n';
-        std::cout << v0 << '\n';
-
         p.push_back(pi);
         p.push_back(conj(pi));
 
         z.push_back(zi);
         z.push_back(conj(zi));
-
-        B.push_back({1, -2 * (1_mpr / zi).real(), 1_mpr / abs(zi) / abs(zi)});
-        A.push_back({1, -2 * (1_mpr / pi).real(), 1_mpr / abs(pi) / abs(pi)});
     }
 
-    auto H0 = r ? 1_mpr : Gp;
-    return std::make_tuple(z, p, H0, B, A);
+    return detail::zp_trans(z,p,Gp);
 }
 
 
@@ -177,6 +160,30 @@ AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const m
     } else {
         return {};
     }
+}
+
+auto AF::detail::zp_trans(zeros &zs, poles &ps, const mpreal& Gp) -> design_res {
+    auto N=ps.size();
+    auto L=N/2;
+    auto r=N%2;
+    std::vector<std::array<mpreal, 3>> B;//分子
+    std::vector<std::array<mpreal, 3>> A;//分母
+    if(r==0){
+        B.push_back({Gp,0,0});
+        A.push_back({1,0,0});
+    }else{
+        auto p0=ps[0];
+        B.push_back({1, 0, 0});
+        A.push_back({1, -(1_mpr / p0).real(), 0});
+    }
+    for(uint32_t i=r;i<=2*L+r;i+=2){
+        auto zi=zs[i-r];
+        auto pi=ps[i];
+        B.push_back({1, -2 * (1_mpr / zi).real(), 1_mpr / abs(zi) / abs(zi)});
+        A.push_back({1, -2 * (1_mpr / pi).real(), 1_mpr / abs(pi) / abs(pi)});
+    }
+    auto H0 = r ? 1_mpr : Gp;
+    return std::make_tuple(zs, ps, H0, B, A);
 }
 
 auto AF::ellipitic_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
