@@ -9,7 +9,7 @@
 
 
 static mpfr::mpreal operator ""_mpr(const char *s) {
-    return mpfr::mpreal(s);
+    return {s};
 }
 
 using mpcomplex = std::complex<mpfr::mpreal>;
