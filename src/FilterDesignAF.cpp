@@ -3,7 +3,7 @@
 //
 
 #include "FilterDesign.h"
-
+using mpfr::mpreal;
 auto AF::detail::elliptic_lp_prototype(uint32_t N, const mpfr::mpreal &Ap,
                                        const mpfr::mpreal &As) -> design_res {
     //N:阶数
@@ -57,15 +57,15 @@ auto AF::detail::elliptic_lp_prototype(uint32_t N, const mpfr::mpreal &Ap,
     return std::make_tuple(z, p, H0, B, A);
 }
 
-auto AF::detail::elliptic_lp_prototype(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap,
-                                       mpfr::mpreal As) -> design_res {
+auto AF::detail::elliptic_lp_prototype(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap,
+                                       const mpfr::mpreal &As) -> design_res {
     //用四个指标确定模拟椭圆低通滤波器
     mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
     mpreal ep = sqrt(pow(10_mpr, Ap / 10_mpr) - 1);//通带波纹系数
     mpreal es = sqrt(pow(10_mpr, As / 10_mpr) - 1);//阻带波纹系数
     mpreal k1 = ep / es;
-    auto [N, wp0] = AF::ellipitic_filter_order(wp, ws, Ap, As, lowpass);
-    wp0 = wp;
+    auto [N, wp0] = AF::detail::ellipitic_filter_order(wp, ws, Ap, As, lowpass);
+    wp0 = wp;//保持通带截止频率不变,这是一种策略
     mpreal k = Ellipitic::deg(N, k1);
     uint32_t L = N / 2;
     uint32_t r = N % 2;
@@ -110,8 +110,8 @@ auto AF::detail::elliptic_lp_prototype(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::m
 }
 
 
-auto AF::ellipitic_filter_order(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpfr::mpreal As,
-                                filter_band_type type) -> std::tuple<uint32_t, mpreal> {
+auto AF::detail::ellipitic_filter_order(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
+                                        filter_band_type type) -> std::tuple<uint32_t, mpfr::mpreal> {
     using mpfr::mpreal;
     mpreal wn0;
     uint32_t N;
@@ -146,8 +146,10 @@ auto AF::ellipitic_filter_order(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal A
 }
 
 auto
-AF::ellipitic_filter_order2(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
-                            mpfr::mpreal As, filter_band_type type) -> std::tuple<uint32_t, mpreal, mpreal> {
+AF::detail::ellipitic_filter_order(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl,
+                                   const mpreal &Ap,
+                                   const mpreal &As,
+                                   filter_band_type type) -> std::tuple<uint32_t, mpfr::mpreal, mpfr::mpreal> {
     //TODO:添加policy,使这个调整策略可以选择
     if (type == filter_band_type::bandpass) {
         //按课本写的可能会有问题,到时候看看英文版
@@ -177,7 +179,7 @@ AF::ellipitic_filter_order2(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu
     }
 }
 
-auto AF::ellipitic_filter(mpfr::mpreal Wp, mpfr::mpreal Ws, mpfr::mpreal Ap, mpfr::mpreal As,
+auto AF::ellipitic_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
                           filter_band_type type) -> design_res {
     if (type == lowpass) {
         return AF::detail::elliptic_lp_prototype(std::move(Wp), std::move(Ws), std::move(Ap), std::move(As));
@@ -206,8 +208,8 @@ auto AF::ellipitic_filter(mpfr::mpreal Wp, mpfr::mpreal Ws, mpfr::mpreal Ap, mpf
     return {};
 }
 
-auto AF::ellipitic_filter(mpfr::mpreal Wpu, mpfr::mpreal Wpl, mpfr::mpreal Wsu, mpfr::mpreal Wsl, mpfr::mpreal Ap,
-                          mpfr::mpreal As,
+auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
+                          const mpreal &As,
                           filter_band_type type) -> design_res {
     if (type == bandpass) {
 

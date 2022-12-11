@@ -6,7 +6,7 @@
 #include "EllipticFunction.h"
 #include "FilterDesign.h"
 
-auto DF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpfr::mpreal As,
+auto DF::ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
                           filter_band_type type) -> design_res {
     if (type == lowpass) {
         //转换技术指标
@@ -104,8 +104,8 @@ auto DF::ellipitic_filter(mpfr::mpreal wp, mpfr::mpreal ws, mpfr::mpreal Ap, mpf
     return {};
 }
 
-auto DF::ellipitic_filter(mpfr::mpreal wpu, mpfr::mpreal wpl, mpfr::mpreal wsu, mpfr::mpreal wsl, mpfr::mpreal Ap,
-                          mpfr::mpreal As,
+auto DF::ellipitic_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
+                          const mpreal &As,
                           filter_band_type type) -> design_res {
 
     mpreal c0, Wsl, Wsu, Ws, Wp, Wpl, Wpu;
