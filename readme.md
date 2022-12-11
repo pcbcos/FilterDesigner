@@ -1,4 +1,4 @@
-# 椭圆滤波器设计程序
+# IIR滤波器设计程序
 
 树林错过了风儿，留下些树叶作为纪念。
 
@@ -16,7 +16,8 @@ cmake -B build . -G "Ninja"
 cmake --build build
 ```
 
-## USE
+## Use
+目前只写了椭圆滤波器,Butterworth、Chebyshev正在路上
 
 滤波器类型:
 
