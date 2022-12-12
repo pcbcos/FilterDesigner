@@ -87,9 +87,13 @@ auto main() -> int {
         std::cout << TransferFunction(B[i], A[i]).toLaTex(TransferFunction::DF) << '\n';
     }
 
+//    for (int i = 0; i < B.size(); i++) {
+//        std::cout << B[i][0] << ',' << B[i][1] << ',' << B[i][2] << ',' << A[i][0] << ',' << A[i][1] << ',' << A[i][2]
+//                  << '\n';
+//    }
+
     for (int i = 0; i < B.size(); i++) {
-        std::cout << B[i][0] << ',' << B[i][1] << ',' << B[i][2] << ',' << A[i][0] << ',' << A[i][1] << ',' << A[i][2]
-                  << '\n';
+        std::cout << TransferFunction(B[i], A[i]).toMMA() << '*';
     }
     return 0;
 }

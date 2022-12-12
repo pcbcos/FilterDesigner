@@ -53,11 +53,14 @@ namespace AF {
         auto zp_trans(zeros &zs, poles &ps, const mpreal &Gp) -> design_res;
 
         //低通转带通
-        auto lp2bp(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>> &B, const std::vector<std::array<mpreal, 3>> &A,
-                   const mpreal& w0, const mpreal& Gp=1_mpr)->design_res;
+        auto lp2bp(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>> &B,
+                   const std::vector<std::array<mpreal, 3>> &A,
+                   const mpreal &w0, const mpreal &Gp = 1_mpr) -> design_res;
+
         //低通转带阻
-        auto lp2bs(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>>& B, const std::vector<std::array<mpreal, 3>> &A,
-                   const mpreal& w0, const mpreal& Gp=1_mpr)->design_res ;
+        auto lp2bs(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>> &B,
+                   const std::vector<std::array<mpreal, 3>> &A,
+                   const mpreal &w0, const mpreal &Gp = 1_mpr) -> design_res;
     }
 
 
@@ -95,7 +98,9 @@ namespace AF {
 namespace DF {
     using namespace mpfr;
     namespace detail {
-
+        auto af2df(const zeros &zs, const poles &ps, const std::vector<std::array<mpreal, 3>> &B,
+                   const std::vector<std::array<mpreal, 3>> &A, const mpreal &c0, int q,
+                   const mpreal &Gp = 1_mpr) -> design_res;
     }
 
     auto ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
