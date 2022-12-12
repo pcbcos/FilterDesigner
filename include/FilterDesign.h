@@ -105,6 +105,28 @@ namespace DF {
                           const mpreal &As,
                           filter_band_type type = filter_band_type::bandpass) -> design_res;
 
+    auto butterworth_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
+                            filter_band_type type = lowpass) -> design_res;
+
+    auto
+    butterworth_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
+                       const mpreal &As,
+                       filter_band_type type = filter_band_type::bandpass) -> design_res;
+
+    auto chebyshev1_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type = lowpass) -> design_res;
+
+    auto chebyshev1_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
+                           const mpreal &As,
+                           filter_band_type type = filter_band_type::bandpass) -> design_res;
+
+    auto chebyshev2_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
+                           filter_band_type type = lowpass) -> design_res;
+
+    auto chebyshev2_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &wsu, const mpreal &wsl, const mpreal &Ap,
+                           const mpreal &As,
+                           filter_band_type type = filter_band_type::bandpass) -> design_res;
+
 }
 
 

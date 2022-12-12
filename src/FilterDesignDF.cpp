@@ -224,3 +224,39 @@ auto DF::ellipitic_filter(const mpreal &wpu, const mpreal &wpl, const mpreal &ws
     }
     return {z, p, H0, B, A};
 }
+
+auto
+DF::butterworth_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                       filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto DF::butterworth_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, const mpfr::mpreal &wsu,
+                            const mpfr::mpreal &wsl, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                            filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto
+DF::chebyshev1_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                      filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto DF::chebyshev1_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, const mpfr::mpreal &wsu,
+                           const mpfr::mpreal &wsl, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                           filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto
+DF::chebyshev2_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                      filter_band_type type) -> design_res {
+    return design_res();
+}
+
+auto DF::chebyshev2_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, const mpfr::mpreal &wsu,
+                           const mpfr::mpreal &wsl, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
+                           filter_band_type type) -> design_res {
+    return design_res();
+}

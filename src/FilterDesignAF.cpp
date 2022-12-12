@@ -391,8 +391,6 @@ auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Ws
         //从B和A入手有一点点难度,考虑从零极点的变换入手
         mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
         return detail::lp2bp(z0, p0, B0, A0, w0, Gp);
-
-
     } else if (type == bandstop) {
         //频率变换
         mpfr::mpreal w0 = sqrt(Wsl * Wsu);//中心频率
@@ -612,16 +610,16 @@ auto AF::chebyshev2_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap,
     uint32_t L = N / 2;
     uint32_t r = N % 2;
 
-    mpcomplex v0=std::asinh<mpreal>(es)/(N*PI/2);
+    mpcomplex v0 = std::asinh<mpreal>(es) / (N * PI / 2);
     if (r == 1) {
-        pa.push_back(-Wp1/(k*sinh(v0*PI/2_mpr)));
+        pa.push_back(-Wp1 / (k * sinh(v0 * PI / 2_mpr)));
     }
     for (uint32_t i = 1; i <= L; i++) {
         mpreal u = (2 * i - 1_mpr) / N;
-        pa.push_back(Wp1/(mpcomplex(0,1)*k*cos((u-mpcomplex(0,1)*v0)*PI/2_mpr)));
-        pa.push_back(conj(Wp1/(mpcomplex(0,1)*k*cos((u-mpcomplex(0,1)*v0)*PI/2_mpr))));
-        za.push_back(Wp1/(mpcomplex(0,1)*k*cos(u*PI/2_mpr)));
-        za.push_back(conj(Wp1/(mpcomplex(0,1)*k*cos(u*PI/2_mpr))));
+        pa.push_back(Wp1 / (mpcomplex(0, 1) * k * cos((u - mpcomplex(0, 1) * v0) * PI / 2_mpr)));
+        pa.push_back(conj(Wp1 / (mpcomplex(0, 1) * k * cos((u - mpcomplex(0, 1) * v0) * PI / 2_mpr))));
+        za.push_back(Wp1 / (mpcomplex(0, 1) * k * cos(u * PI / 2_mpr)));
+        za.push_back(conj(Wp1 / (mpcomplex(0, 1) * k * cos(u * PI / 2_mpr))));
     }
     auto [z, p, H0, B, A] = detail::zp_trans(za, pa, Gp);
     if (type == highpass) {

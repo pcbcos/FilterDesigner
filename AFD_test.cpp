@@ -55,14 +55,14 @@ auto main() -> int {
     //auto [z, p, H0, B, A] = AF::detail::elliptic_lp_prototype(N, Ap, As);
     if ((filter_band_type(type) == lowpass) || (filter_band_type(type) == highpass)) {
         //auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
-        auto [z1, p1, H01, B1, A1] = AF::chebyshev2_filter(wp, ws, Ap, As, (filter_band_type) type);
+        auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
         z = z1;
         p = p1;
         H0 = H01;
         B = std::move(B1);
         A = std::move(A1);
     } else {
-        auto [z1, p1, H01, B1, A1] = AF::chebyshev2_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
+        auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
         z = z1;
         p = p1;
         H0 = H01;
