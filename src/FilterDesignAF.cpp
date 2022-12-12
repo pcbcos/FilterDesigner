@@ -499,17 +499,91 @@ AF::butterworth_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, 
     } else {
         return detail::lp2bs(z0, p0, B0, A0, w0);
     }
-
 }
 
 auto AF::chebyshev1_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
                            filter_band_type type) -> design_res {
-    return design_res();
+    mpreal Wp1, Ws1;
+    //频率变换
+    if (type == lowpass) {
+        Wp1 = Wp;
+        Ws1 = Ws;
+    } else if (type == highpass) {
+        Wp1 = 1_mpr / Wp;
+        Ws1 = 1_mpr / Ws;
+    }
+    mpreal ep = sqrt(pow(10_mpr, Ap / 10_mpr) - 1_mpr);
+    mpreal es = sqrt(pow(10_mpr, As / 10_mpr) - 1_mpr);
+    mpreal k = Wp1 / Ws1;
+    mpreal k1 = ep / es;
+    mpreal Gp = pow(10, -Ap / 20_mpr);
+    mpreal N_exact = acosh(1_mpr / k1) / acosh(1_mpr / k);
+    uint32_t N = ceil(N_exact).toULLong();
+
+    zeros za;
+    poles pa;
+
+    uint32_t L = N / 2;
+    uint32_t r = N % 2;
+    mpcomplex v0 = asinh(mpcomplex(1, 0) / ep) / (N * PI / 2);
+
+    if (r == 1) {
+        pa.push_back(-Wp1 * sinh(v0 * PI / 2_mpr));
+    }
+
+    for (uint32_t i = 1; i <= L; i++) {
+        mpreal u = (2 * i - 1_mpr) / N;
+        pa.push_back(Wp * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr));
+        pa.push_back(conj(Wp * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr)));
+        za.push_back(mpcomplex(mpfr::const_infinity(), 0));
+        za.push_back(mpcomplex(mpfr::const_infinity(), 0));
+    }
+    auto [z, p, H0, B, A] = detail::zp_trans(za, pa, Gp);
+    if (type == highpass) {
+        for (auto &li: B) {
+            std::reverse(li.begin(), li.end());
+        }
+        for (auto &li: A) {
+            std::reverse(li.begin(), li.end());
+        }
+        for (auto &zi: z) {
+            zi = 1_mpr / zi;
+        }
+        for (auto &pi: p) {
+            pi = 1_mpr / pi;
+        }
+    }
+    return {z, p, H0, B, A};
 }
 
 auto AF::chebyshev1_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, const mpreal &Wsl, const mpreal &Ap,
                            const mpreal &As, filter_band_type type) -> design_res {
-    return design_res();
+    mpreal ws_p, wp_p, w0;
+    mpreal Gp = pow(10, -Ap / 20_mpr);
+    if (type == bandpass) {
+        //频率变换
+        w0 = sqrt(Wpl * Wpu);
+        mpreal BW = Wpu - Wpl;
+        mpreal wsl_p = Wsl - w0 * w0 / Wsl;
+        mpreal wsu_p = Wsu - w0 * w0 / Wsu;
+        ws_p = min(abs(wsl_p), abs(wsu_p));
+        wp_p = BW;
+    } else if (type == bandstop) {
+        //频率变换
+        w0 = sqrt(Wsl * Wsu);//中心频率
+        mpreal BW = Wsu - Wsl;
+        mpreal wpl_p = 1_mpr / (Wpl - w0 * w0 / Wpl);
+        mpreal wpu_p = 1_mpr / (Wpu - w0 * w0 / Wpu);
+        ws_p = 1_mpr / BW;
+        wp_p = max(abs(wpl_p), abs(wpu_p));
+    }
+    auto [z0, p0, H0, B0, A0] = AF::chebyshev1_filter(wp_p, ws_p, Ap, As);
+    //频率逆变换
+    if (type == bandpass) {
+        return detail::lp2bp(z0, p0, B0, A0, w0,Gp);
+    } else {
+        return detail::lp2bs(z0, p0, B0, A0, w0,Gp);
+    }
 }
 
 auto AF::chebyshev2_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap, const mpreal &As,
