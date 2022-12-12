@@ -182,9 +182,9 @@ auto AF::detail::zp_trans(zeros &zs, poles &ps, const mpreal &Gp) -> design_res 
     for (uint32_t i = r; i < 2 * L + r; i += 2) {
         auto zi = zs[i - r];
         auto pi = ps[i];
-        if(mpfr::isinf(zi.real())){
-            B.push_back({1,0, 0});
-        }else{
+        if (mpfr::isinf(zi.real())) {
+            B.push_back({1, 0, 0});
+        } else {
             B.push_back({1, -2 * (1_mpr / zi).real(), 1_mpr / abs(zi) / abs(zi)});
         }
         A.push_back({1, -2 * (1_mpr / pi).real(), 1_mpr / abs(pi) / abs(pi)});
@@ -193,7 +193,8 @@ auto AF::detail::zp_trans(zeros &zs, poles &ps, const mpreal &Gp) -> design_res 
     return std::make_tuple(zs, ps, H0, B, A);
 }
 
-auto AF::detail::lp2bp(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+auto AF::detail::lp2bp(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>> &B,
+                       const std::vector<std::array<mpreal, 3>> &A,
                        const mpreal &w0, const mpreal &Gp) -> design_res {
     std::vector<mpcomplex> z;
     std::vector<mpcomplex> p;
@@ -235,10 +236,13 @@ auto AF::detail::lp2bp(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> 
         p.push_back(conj(pi1));
         auto B2 = B[i / 2 + 1][2];
         auto A2 = A[(i - r) / 2 + 1][2];
-
-        B1.push_back({B2, -2 * B2 * (1_mpr / zi1).real(), B2 / abs(zi1) / abs(zi1)});
+        if (mpfr::isinf(z0i.real())) {
+            B1.push_back({0, 1_mpr / w0 / w0, 0});
+        } else {
+            B1.push_back({B2, -2 * B2 * (1_mpr / zi1).real(), B2 / abs(zi1) / abs(zi1)});
+            H0 *= (B2 / A2);
+        }
         A1.push_back({A2, -2 * A2 * (1_mpr / pi1).real(), A2 / abs(pi1) / abs(pi1)});
-        H0 *= (B2 / A2);
 
         //第二组
         mpcomplex zi2;
@@ -255,13 +259,18 @@ auto AF::detail::lp2bp(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> 
         p.push_back(pi2);
         p.push_back(conj(pi2));
 
-        B1.push_back({1_mpr, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        if (mpfr::isinf(z0i.real())) {
+            B1.push_back({0, 1_mpr / w0 / w0, 0});
+        } else {
+            B1.push_back({1_mpr, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        }
         A1.push_back({1_mpr, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
     }
     return {z, p, H0, B1, A1};
 }
 
-auto AF::detail::lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> B, std::vector<std::array<mpreal, 3>> A,
+auto AF::detail::lp2bs(zeros &zs, poles &ps, const std::vector<std::array<mpreal, 3>> &B,
+                       const std::vector<std::array<mpreal, 3>> &A,
                        const mpreal &w0, const mpreal &Gp) -> design_res {
     std::vector<mpcomplex> z;
     std::vector<mpcomplex> p;
@@ -273,8 +282,8 @@ auto AF::detail::lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> 
     if (r == 1) {
         auto p_first = ps[0];
         p_first = 1_mpr / p_first;
-        A1.push_back({1, 1_mpr / (A[0][1] * w0 * w0), 1_mpr / (w0 * w0)});
-        B1.push_back({0, 1_mpr / (A[0][1] * w0 * w0), 0});
+        B1.push_back({w0 * w0, 0, 1_mpr});
+        A1.push_back({w0 * w0, A[0][1], 1_mpr});
         p.push_back((p_first + sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
         p.push_back((p_first - sqrt(p_first * p_first - 4_mpr * w0 * w0)) / 2_mpr);
         H0 = 1;
@@ -285,7 +294,12 @@ auto AF::detail::lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> 
     }
     for (uint32_t i = r; i < 2 * L + r; i += 2) {
         auto z0i = zs[i - r];
-        z0i = 1_mpr / z0i;
+        bool flag = mpfr::isinf(z0i.real());
+        if (mpfr::isinf(z0i.real())) {
+            z0i = 0_mpr;
+        } else {
+            z0i = 1_mpr / z0i;
+        }
         //auto z0i_conj = conj(z0i);
         auto p0i = ps[i];
         p0i = 1_mpr / p0i;
@@ -293,36 +307,36 @@ auto AF::detail::lp2bs(zeros &zs, poles &ps, std::vector<std::array<mpreal, 3>> 
 
         //第一组
         mpcomplex zi1;
-        if(isinf(z0i.real())){
-            zi1=z0i;
-        }else{
-            zi1=(z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-        }
+        zi1 = (z0i + sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+
         z.push_back(zi1);
         z.push_back(conj(zi1));
 
         auto pi1 = (p0i + sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
         p.push_back(pi1);
         p.push_back(conj(pi1));
-
-        B1.push_back({1_mpr, -2 * (1_mpr / zi1).real(), 1_mpr / abs(zi1) / abs(zi1)});
+        if (flag) {
+            B1.push_back({1, 0, 1_mpr / w0 / w0});
+        } else {
+            B1.push_back({1_mpr, -2 * (1_mpr / zi1).real(), 1_mpr / abs(zi1) / abs(zi1)});
+        }
         A1.push_back({1_mpr, -2 * (1_mpr / pi1).real(), 1_mpr / abs(pi1) / abs(pi1)});
 
         //第二组
         mpcomplex zi2;
-        if(isinf(z0i.real())){
-            zi2=0_mpr;
-        }else{
-            zi2=(z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
-        }
+        zi2 = (z0i - sqrt(z0i * z0i - 4_mpr * w0 * w0)) / 2_mpr;
+
         z.push_back(zi2);
         z.push_back(conj(zi2));
 
         auto pi2 = (p0i - sqrt(p0i * p0i - 4_mpr * w0 * w0)) / 2_mpr;
         p.push_back(pi2);
         p.push_back(conj(pi2));
-
-        B1.push_back({1, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        if (flag) {
+            B1.push_back({1, 0, 1_mpr / w0 / w0});
+        } else {
+            B1.push_back({1, -2 * (1_mpr / zi2).real(), 1_mpr / abs(zi2) / abs(zi2)});
+        }
         A1.push_back({1, -2 * (1_mpr / pi2).real(), 1_mpr / abs(pi2) / abs(pi2)});
     }
     return {z, p, H0, B1, A1};
@@ -380,7 +394,6 @@ auto AF::ellipitic_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Ws
 
 
     } else if (type == bandstop) {
-
         //频率变换
         mpfr::mpreal w0 = sqrt(Wsl * Wsu);//中心频率
         mpreal BW = Wsu - Wsl;
@@ -431,8 +444,8 @@ auto AF::butterworth_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap
         mpreal u = (2 * i - 1_mpr) / N;
         pa.push_back(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N));
         pa.push_back(conj(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N)));
-        za.push_back(mpcomplex(mpfr::const_infinity(),0));
-        za.push_back(mpcomplex(mpfr::const_infinity(),0));
+        za.push_back(mpcomplex(mpfr::const_infinity(), 0));
+        za.push_back(mpcomplex(mpfr::const_infinity(), 0));
     }
     auto [z, p, H0, B, A] = detail::zp_trans(za, pa, Gp);
     if (type == highpass) {
@@ -472,6 +485,12 @@ AF::butterworth_filter(const mpreal &Wpu, const mpreal &Wpl, const mpreal &Wsu, 
         mpreal wpu_p = 1_mpr / (Wpu - w0 * w0 / Wpu);
         ws_p = 1_mpr / BW;
         wp_p = max(abs(wpl_p), abs(wpu_p));
+//        w0 = sqrt(Wpl * Wpu);
+//        mpreal BW = Wpu - Wpl;
+//        mpreal wsl_p = 1_mpr / (Wsl - w0 * w0 / Wsl);
+//        mpreal wsu_p = 1_mpr / (Wsu - w0 * w0 / Wsu);
+//        ws_p = min(abs(wsl_p), abs(wsu_p));
+//        wp_p = 1_mpr/BW;
     }
     auto [z0, p0, H0, B0, A0] = AF::butterworth_filter(wp_p, ws_p, Ap, As);
     //频率逆变换
