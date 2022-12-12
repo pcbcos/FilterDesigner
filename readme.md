@@ -43,4 +43,5 @@ DFD_test.exe
 ```
 
 输出中有系统的各项的LaTeX
+带阻滤波器的设计和Mathematica设计出来的有较大出入(差异在于过渡带),Elliptic型似乎没有这个出入
 
