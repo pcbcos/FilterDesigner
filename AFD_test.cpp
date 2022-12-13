@@ -13,11 +13,15 @@ auto main() -> int {
     mpreal k;
 
     std::cout.precision(20);
-    std::cout << "elliptic_analog_design" << '\n';
-
-    std::cout << "type:";
+    std::cout << "Analog_Filter_Designer" << '\n';
+    int ftype;
+    std::cout << "Filter type(0:butterworth\t1:chebyshev1\t2:chebyshev2\t3:elliptic):";
+    std::cin >> ftype;
+    std::cout <<'\n';
+    std::cout << "band_type(0:lowpass\t1:highpass\t2:bandpass\t3:bandstop):";
     int type;
     std::cin >> type;
+
     mpreal wp, wpl, wpu;
     mpreal ws, wsl, wsu;
 
@@ -51,23 +55,71 @@ auto main() -> int {
     mpreal As;
     std::cin >> As;
 
-    auto [z, p, H0, B, A] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
-    //auto [z, p, H0, B, A] = AF::detail::elliptic_lp_prototype(N, Ap, As);
+    zeros z;
+    poles p;
+    mpreal H0;
+    std::vector<std::array<mpfr::mpreal, 3>> B;
+    std::vector<std::array<mpfr::mpreal, 3>> A;
     if ((filter_band_type(type) == lowpass) || (filter_band_type(type) == highpass)) {
-        //auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
-        auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
-        z = z1;
-        p = p1;
-        H0 = H01;
-        B = std::move(B1);
-        A = std::move(A1);
+        if (ftype == 0) {
+            auto [z1, p1, H01, B1, A1] = AF::butterworth_filter(wp, ws, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else if (ftype == 1) {
+            auto [z1, p1, H01, B1, A1] = AF::chebyshev1_filter(wp, ws, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else if (ftype == 2) {
+            auto [z1, p1, H01, B1, A1] = AF::chebyshev2_filter(wp, ws, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else {
+            auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wp, ws, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        }
     } else {
-        auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
-        z = z1;
-        p = p1;
-        H0 = H01;
-        B = std::move(B1);
-        A = std::move(A1);
+        if (ftype == 0) {
+            auto [z1, p1, H01, B1, A1] = AF::butterworth_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else if (ftype == 1) {
+            auto [z1, p1, H01, B1, A1] = AF::chebyshev1_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else if (ftype == 2) {
+            auto [z1, p1, H01, B1, A1] = AF::chebyshev2_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        } else {
+            auto [z1, p1, H01, B1, A1] = AF::ellipitic_filter(wpu, wpl, wsu, wsl, Ap, As, (filter_band_type) type);
+            z = z1;
+            p = p1;
+            H0 = H01;
+            B = std::move(B1);
+            A = std::move(A1);
+        }
     }
 
     std::cout << "\n零点z" << '\n';
