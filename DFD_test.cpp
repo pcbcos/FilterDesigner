@@ -20,7 +20,7 @@ auto main() -> int {
     int ftype;
     std::cout << "Filter type(0:butterworth\t1:chebyshev1\t2:chebyshev2\t3:elliptic):";
     std::cin >> ftype;
-    std::cout <<'\n';
+    std::cout << '\n';
     std::cout << "band_type(0:lowpass\t1:highpass\t2:bandpass\t3:bandstop):";
     int type;
     std::cin >> type;
@@ -138,11 +138,6 @@ auto main() -> int {
     for (int i = 0; i < B.size(); i++) {
         std::cout << TransferFunction(B[i], A[i]).toLaTex(TransferFunction::DF) << '\n';
     }
-
-//    for (int i = 0; i < B.size(); i++) {
-//        std::cout << B[i][0] << ',' << B[i][1] << ',' << B[i][2] << ',' << A[i][0] << ',' << A[i][1] << ',' << A[i][2]
-//                  << '\n';
-//    }
 
     for (int i = 0; i < B.size(); i++) {
         std::cout << TransferFunction(B[i], A[i]).toMMA() << '*';
