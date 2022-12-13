@@ -87,7 +87,7 @@ DF::butterworth_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpf
         //转换技术指标
         mpreal Wp = cot(wp / 2_mpr);
         mpreal Ws = cot(ws / 2_mpr);
-        mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
+        mpreal Gp = 1_mpr;
         //设计模拟低通滤波器
         auto [z0, p0, H0, B0, A0] = AF::butterworth_filter(Wp, Ws, Ap, As, lowpass);
         //反转换
@@ -253,7 +253,7 @@ auto DF::detail::af2df(const zeros &zs, const poles &ps, const mpreal &c0, int q
         z.push_back(zi2s);
         if (q == 1 && (c0 == 1_mpr) || (c0 == -1_mpr)) {//LP HP特判
             if (mpfr::isinf(zs[i - r].real())) {//Butterworth Chebyshev1 特判
-                B1.push_back({Gi_square, 2*Gi_square, Gi_square});
+                B1.push_back({Gi_square, 2*Gi_square*c0, Gi_square});
             } else {
                 B1.push_back({Gi_square, -2_mpr * Gi_square * zi1.real(), Gi_square * abs(zi1) * abs(zi1)});
             }
