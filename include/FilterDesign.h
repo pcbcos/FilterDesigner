@@ -98,9 +98,7 @@ namespace AF {
 namespace DF {
     using namespace mpfr;
     namespace detail {
-        auto af2df(const zeros &zs, const poles &ps, const std::vector<std::array<mpreal, 3>> &B,
-                   const std::vector<std::array<mpreal, 3>> &A, const mpreal &c0, int q,
-                   const mpreal &Gp = 1_mpr) -> design_res;
+        auto af2df(const zeros &zs, const poles &ps, const mpreal &c0, int q, const mpreal &Gp) -> design_res;
     }
 
     auto ellipitic_filter(const mpreal &wp, const mpreal &ws, const mpreal &Ap, const mpreal &As,
