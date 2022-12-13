@@ -138,25 +138,129 @@ auto DF::butterworth_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, co
 auto
 DF::chebyshev1_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
                       filter_band_type type) -> design_res {
-    return design_res();
+    if (type == lowpass) {
+        //转换技术指标DF->AF
+        mpreal Wp = tan(wp / 2_mpr);
+        mpreal Ws = tan(ws / 2_mpr);
+        mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
+        //设计模拟低通滤波器
+        auto [z0, p0, H0, B0, A0] = AF::chebyshev1_filter(Wp, Ws, Ap, As, lowpass);
+        //反转换AF->DF
+        return DF::detail::af2df(z0, p0, 1_mpr, 1, Gp);
+    } else if (type == highpass) {
+        //转换技术指标
+        mpreal Wp = cot(wp / 2_mpr);
+        mpreal Ws = cot(ws / 2_mpr);
+        mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
+        //设计模拟低通滤波器
+        auto [z0, p0, H0, B0, A0] = AF::chebyshev1_filter(Wp, Ws, Ap, As, lowpass);
+        //反转换
+        return DF::detail::af2df(z0, p0, -1_mpr, 1, Gp);
+    }
+    return {};
 }
 
 auto DF::chebyshev1_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, const mpfr::mpreal &wsu,
                            const mpfr::mpreal &wsl, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
                            filter_band_type type) -> design_res {
-    return design_res();
+    mpreal Gp = pow(10_mpr, -Ap / 20_mpr);
+    mpreal c0, Wsl, Wsu, Ws, Wp, Wpl, Wpu;
+    int q;
+    if (type == bandpass) {
+        //转换技术指标//TODO:还有一种技术指标的转换方式
+        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
+        Wsl = (c0 - cos(wsl)) / sin(wsl);
+        Wsu = (c0 - cos(wsu)) / sin(wsu);
+        Ws = std::min(abs(Wsl), abs(Wsu));
+        Wp = tan((wpu - wpl) / 2_mpr);
+        q = 1;
+//        mpreal c0=sin(wsl+wsu)/(sin(wsl)+sin(wsu));
+//        mpreal Wpl=(c0-cos(wpl))/sin(wpl);
+//        mpreal Wpu=(c0-cos(wpu))/sin(wpu);
+//        mpreal Ws=tan((wsu-wsl)/2_mpr);
+//        mpreal Wp=std::max(abs(Wpl),abs(Wpu));
+    } else if (type == bandstop) {
+        //转换技术指标//TODO:还有一种技术指标的转换方式
+//        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
+//        Wsl = sin(wsl) / (c0 - cos(wsl));
+//        Wsu = sin(wsu) / (c0 - cos(wsu));
+//        Ws = std::min(abs(Wsl), abs(Wsu));
+//        Wp = cot((wpu - wpl) / 2_mpr);
+        c0 = sin(wsl + wsu) / (sin(wsl) + sin(wsu));
+        Wpl = sin(wpl) / (c0 - cos(wpl));
+        Wpu = sin(wpu) / (c0 - cos(wpu));
+        Wp = std::max(abs(Wpl), abs(Wpu));
+        Ws = cot((wsu - wsl) / 2_mpr);
+        q = -1;
+    }
+    //设计模拟低通滤波器
+    auto [z0, p0, H0, B0, A0] = AF::chebyshev1_filter(Wp, Ws, Ap, As);
+    //反转换
+    return DF::detail::af2df(z0, p0, c0, q, Gp);
 }
 
 auto
 DF::chebyshev2_filter(const mpfr::mpreal &wp, const mpfr::mpreal &ws, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
                       filter_band_type type) -> design_res {
-    return design_res();
+    if (type == lowpass) {
+        //转换技术指标DF->AF
+        mpreal Wp = tan(wp / 2_mpr);
+        mpreal Ws = tan(ws / 2_mpr);
+        mpreal Gp = 1_mpr;
+        //设计模拟低通滤波器
+        auto [z0, p0, H0, B0, A0] = AF::chebyshev2_filter(Wp, Ws, Ap, As, lowpass);
+        //反转换AF->DF
+        return DF::detail::af2df(z0, p0, 1_mpr, 1, Gp);
+    } else if (type == highpass) {
+        //转换技术指标
+        mpreal Wp = cot(wp / 2_mpr);
+        mpreal Ws = cot(ws / 2_mpr);
+        mpreal Gp = 1_mpr;
+        //设计模拟低通滤波器
+        auto [z0, p0, H0, B0, A0] = AF::chebyshev2_filter(Wp, Ws, Ap, As, lowpass);
+        //反转换
+        return DF::detail::af2df(z0, p0, -1_mpr, 1, Gp);
+    }
+    return {};
 }
 
 auto DF::chebyshev2_filter(const mpfr::mpreal &wpu, const mpfr::mpreal &wpl, const mpfr::mpreal &wsu,
                            const mpfr::mpreal &wsl, const mpfr::mpreal &Ap, const mpfr::mpreal &As,
                            filter_band_type type) -> design_res {
-    return design_res();
+    mpreal Gp = 1_mpr;
+    mpreal c0, Wsl, Wsu, Ws, Wp, Wpl, Wpu;
+    int q;
+    if (type == bandpass) {
+        //转换技术指标//TODO:还有一种技术指标的转换方式
+        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
+        Wsl = (c0 - cos(wsl)) / sin(wsl);
+        Wsu = (c0 - cos(wsu)) / sin(wsu);
+        Ws = std::min(abs(Wsl), abs(Wsu));
+        Wp = tan((wpu - wpl) / 2_mpr);
+        q = 1;
+//        mpreal c0=sin(wsl+wsu)/(sin(wsl)+sin(wsu));
+//        mpreal Wpl=(c0-cos(wpl))/sin(wpl);
+//        mpreal Wpu=(c0-cos(wpu))/sin(wpu);
+//        mpreal Ws=tan((wsu-wsl)/2_mpr);
+//        mpreal Wp=std::max(abs(Wpl),abs(Wpu));
+    } else if (type == bandstop) {
+        //转换技术指标//TODO:还有一种技术指标的转换方式
+//        c0 = sin(wpl + wpu) / (sin(wpl) + sin(wpu));
+//        Wsl = sin(wsl) / (c0 - cos(wsl));
+//        Wsu = sin(wsu) / (c0 - cos(wsu));
+//        Ws = std::min(abs(Wsl), abs(Wsu));
+//        Wp = cot((wpu - wpl) / 2_mpr);
+        c0 = sin(wsl + wsu) / (sin(wsl) + sin(wsu));
+        Wpl = sin(wpl) / (c0 - cos(wpl));
+        Wpu = sin(wpu) / (c0 - cos(wpu));
+        Wp = std::max(abs(Wpl), abs(Wpu));
+        Ws = cot((wsu - wsl) / 2_mpr);
+        q = -1;
+    }
+    //设计模拟低通滤波器
+    auto [z0, p0, H0, B0, A0] = AF::chebyshev2_filter(Wp, Ws, Ap, As);
+    //反转换
+    return DF::detail::af2df(z0, p0, c0, q, Gp);
 }
 
 auto DF::detail::af2df(const zeros &zs, const poles &ps, const mpreal &c0, int q, const mpreal &Gp) -> design_res {
