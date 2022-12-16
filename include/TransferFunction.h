@@ -65,16 +65,28 @@ public:
                ',' + A[1].toString(8) + ',' + A[2].toString(8) + ']';
     }
 
-    inline mpfr::mpreal grid(const mpreal &w0) {
+    inline mpfr::mpreal grid(const mpreal &w0, ftype type = AF) {
         //计算某一频点处的增益的模
         mpcomplex J(0, 1_mpr);
-        return abs(B[0] + B[1] * J * w0 - B[2] * w0 * w0) / abs(A[0] + A[1] * J * w0 - A[2] * w0 * w0);
+        if (type == AF) {
+            return abs(B[0] + B[1] * J * w0 - B[2] * w0 * w0) / abs(A[0] + A[1] * J * w0 - A[2] * w0 * w0);
+        } else {
+            return abs(B[0] + B[1] * exp(-J * w0) + B[2] * exp(-J * 2_mpr * w0)) /
+                   abs(A[0] + A[1] * exp(-J * w0) + A[2] * exp(-J * 2_mpr * w0));
+        }
+
     }
 
-    inline mpfr::mpreal arg(const mpreal &w0) {
+    inline mpfr::mpreal arg(const mpreal &w0, ftype type = AF) {
         //计算某一频点处的增益辐角
         mpcomplex J(0, 1_mpr);
-        return std::arg((B[0] + B[1] * J * w0 - B[2] * w0 * w0) / (A[0] + A[1] * J * w0 - A[2] * w0 * w0));
+        if (type == AF) {
+            return std::arg((B[0] + B[1] * J * w0 - B[2] * w0 * w0) / (A[0] + A[1] * J * w0 - A[2] * w0 * w0));
+        } else {
+            return std::arg((B[0] + B[1] * exp(-J * w0) + B[2] * exp(-J * 2_mpr * w0)) /
+                            (A[0] + A[1] * exp(-J * w0) + A[2] * exp(-J * 2_mpr * w0)));
+        }
+
     }
 
 
