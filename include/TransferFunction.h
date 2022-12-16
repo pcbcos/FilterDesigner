@@ -9,6 +9,7 @@
 #include <vector>
 #include <mpreal.h>
 #include <array>
+#include "mpreal_ex.h"
 
 using mpfr::mpreal;
 using mpcomplex = std::complex<mpreal>;
@@ -34,7 +35,7 @@ public:
         return A;
     }
 
-    inline std::string toLaTex(ftype type = AF) {
+    inline std::string toLaTeX(ftype type = AF) {
         std::string s;
         auto get_flag = [](const mpreal &x) {
             return x > 0 ? std::string("+") : std::string("-");
@@ -59,9 +60,23 @@ public:
         return s;
     }
 
-    inline std::string toMMA(){
-        return "F["+B[0].toString(8)+','+B[1].toString(8)+','+B[2].toString(8)+','+A[0].toString(8)+','+A[1].toString(8)+','+A[2].toString(8)+']';
+    inline std::string toMMA() {
+        return "F[" + B[0].toString(8) + ',' + B[1].toString(8) + ',' + B[2].toString(8) + ',' + A[0].toString(8) +
+               ',' + A[1].toString(8) + ',' + A[2].toString(8) + ']';
     }
+
+    inline mpfr::mpreal grid(const mpreal &w0) {
+        //计算某一频点处的增益的模
+        mpcomplex J(0, 1_mpr);
+        return abs(B[0] + B[1] * J * w0 - B[2] * w0 * w0) / abs(A[0] + A[1] * J * w0 - A[2] * w0 * w0);
+    }
+
+    inline mpfr::mpreal arg(const mpreal &w0) {
+        //计算某一频点处的增益辐角
+        mpcomplex J(0, 1_mpr);
+        return std::arg((B[0] + B[1] * J * w0 - B[2] * w0 * w0) / (A[0] + A[1] * J * w0 - A[2] * w0 * w0));
+    }
+
 
 private:
     std::array<mpreal, 3> B;

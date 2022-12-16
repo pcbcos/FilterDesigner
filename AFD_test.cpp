@@ -134,7 +134,7 @@ auto main() -> int {
     std::cout << H0 << '\n';
     std::cout << "H(s)" << '\n';
     for (int i = 0; i < B.size(); i++) {
-        std::cout << TransferFunction(B[i], A[i]).toLaTex() << '\n';
+        std::cout << TransferFunction(B[i], A[i]).toLaTeX() << '\n';
     }
 
     for (int i = 0; i < B.size(); i++) {
