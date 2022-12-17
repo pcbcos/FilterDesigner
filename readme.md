@@ -17,12 +17,20 @@ cmake --build build
 ```
 
 ## Use
-目前只写了椭圆滤波器,Butterworth、Chebyshev正在路上
 
 滤波器类型:
 
+| number | type        |
+|--------|-------------|
+| 0      | Butterworth |
+| 1      | Chebyshev1  |
+| 2      | Chebyshev2  |
+| 3      | Elliptic    |
+
+滤波器频带类型:
+
 | number | type     |
-| ------ | -------- |
+|--------|----------|
 | 0      | Lowpass  |
 | 1      | Highpass |
 | 2      | Bandpass |
