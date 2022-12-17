@@ -65,7 +65,7 @@ public:
                ',' + A[1].toString(8) + ',' + A[2].toString(8) + ']';
     }
 
-    inline mpfr::mpreal grid(const mpreal &w0, ftype type = AF) {
+    inline mpfr::mpreal gain(const mpreal &w0, ftype type = AF) {
         //计算某一频点处的增益的模
         mpcomplex J(0, 1_mpr);
         if (type == AF) {

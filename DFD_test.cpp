@@ -139,8 +139,22 @@ auto main() -> int {
         std::cout << TransferFunction(B[i], A[i]).toLaTeX(TransferFunction::DF) << '\n';
     }
 
+    std::vector<TransferFunction> v;
     for (int i = 0; i < B.size(); i++) {
         std::cout << TransferFunction(B[i], A[i]).toMMA() << '*';
+        v.emplace_back(B[i], A[i]);
     }
+    for(int i=0;i<=314;i++){
+        mpreal w0=i/100_mpr;
+        mpreal H=1_mpr;
+        for(auto& tf:v){
+            H*= tf.gain(w0, TransferFunction::DF);
+        }
+        if(!mpfr::isnan(H)){
+            std::cout<<"w0="<<w0<<"  Gain="<<H<<'\n';
+        }
+
+    }
+
     return 0;
 }

@@ -435,13 +435,13 @@ auto AF::butterworth_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap
     zeros za;
     poles pa;
     if (r == 1) {
-        pa.push_back(-Wp * pow(ep, -1_mpr / N));
+        pa.push_back(-Wp1 * pow(ep, -1_mpr / N));
     }
 
     for (uint32_t i = 1; i <= L; i++) {
         mpreal u = (2 * i - 1_mpr) / N;
-        pa.push_back(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N));
-        pa.push_back(conj(Wp * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N)));
+        pa.push_back(Wp1 * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N));
+        pa.push_back(conj(Wp1 * mpcomplex(0, 1) * exp(mpcomplex(0, 1) * u * PI / 2_mpr) / pow(ep, 1_mpr / N)));
         za.push_back(mpcomplex(mpfr::const_infinity(), 0));
         za.push_back(mpcomplex(mpfr::const_infinity(), 0));
     }
@@ -454,10 +454,19 @@ auto AF::butterworth_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap
             std::reverse(li.begin(), li.end());
         }
         for (auto &zi: z) {
-            zi = 1_mpr / zi;
+            if (mpfr::isinf(zi.real())) {
+                zi = mpcomplex(0, 0);
+            } else {
+                zi = 1_mpr / zi;
+            }
+
         }
         for (auto &pi: p) {
-            pi = 1_mpr / pi;
+            if (mpfr::isinf(pi.real())) {
+                pi = mpcomplex(0, 0);
+            } else {
+                pi = 1_mpr / pi;
+            }
         }
     }
     return {z, p, H0, B, A};
@@ -531,8 +540,8 @@ auto AF::chebyshev1_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap,
 
     for (uint32_t i = 1; i <= L; i++) {
         mpreal u = (2 * i - 1_mpr) / N;
-        pa.push_back(Wp * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr));
-        pa.push_back(conj(Wp * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr)));
+        pa.push_back(Wp1 * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr));
+        pa.push_back(conj(Wp1 * mpcomplex(0, 1) * cos((u + mpcomplex(0, -1) * v0) * PI / 2_mpr)));
         za.push_back(mpcomplex(mpfr::const_infinity(), 0));
         za.push_back(mpcomplex(mpfr::const_infinity(), 0));
     }
@@ -545,10 +554,19 @@ auto AF::chebyshev1_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap,
             std::reverse(li.begin(), li.end());
         }
         for (auto &zi: z) {
-            zi = 1_mpr / zi;
+            if (mpfr::isinf(zi.real())) {
+                zi = mpcomplex(0, 0);
+            } else {
+                zi = 1_mpr / zi;
+            }
+
         }
         for (auto &pi: p) {
-            pi = 1_mpr / pi;
+            if (mpfr::isinf(pi.real())) {
+                pi = mpcomplex(0, 0);
+            } else {
+                pi = 1_mpr / pi;
+            }
         }
     }
     return {z, p, H0, B, A};
@@ -630,10 +648,19 @@ auto AF::chebyshev2_filter(const mpreal &Wp, const mpreal &Ws, const mpreal &Ap,
             std::reverse(li.begin(), li.end());
         }
         for (auto &zi: z) {
-            zi = 1_mpr / zi;
+            if (mpfr::isinf(zi.real())) {
+                zi = mpcomplex(0, 0);
+            } else {
+                zi = 1_mpr / zi;
+            }
+
         }
         for (auto &pi: p) {
-            pi = 1_mpr / pi;
+            if (mpfr::isinf(pi.real())) {
+                pi = mpcomplex(0, 0);
+            } else {
+                pi = 1_mpr / pi;
+            }
         }
     }
     return {z, p, H0, B, A};
